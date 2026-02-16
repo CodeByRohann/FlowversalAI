@@ -281,7 +281,7 @@ export class HumanApprovalService {
 
       // Default: allow approval
       return true;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to check user approval permissions', {
         executionId: execution._id,
         userId,
@@ -308,7 +308,7 @@ export class HumanApprovalService {
         data,
         timestamp: Date.now(),
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.warn('Failed to broadcast approval update', { executionId, approvalId, error });
     }
   }

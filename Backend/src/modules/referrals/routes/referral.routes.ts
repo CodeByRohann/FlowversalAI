@@ -9,7 +9,7 @@ const referralRoutes: FastifyPluginAsync = async (fastify) => {
    * Get user's referral information
    */
   fastify.get('/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const userId = request.user.id;
+    const userId = (request.user as any).id;
 
     // TODO: Implement real referral system with database
     // For now, return placeholder data

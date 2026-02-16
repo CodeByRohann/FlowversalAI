@@ -2,7 +2,7 @@ import { mcpServer } from '../../agents/mcp/server';
 import { langChainAgentService } from '../../modules/ai/services/ai/langchain-agent.service';
 import { ChatMessage, langChainService } from '../../modules/ai/services/ai/langchain.service';
 import { ModelRoutingOptions } from '../../modules/ai/services/ai/model-decision.types';
-// import { modelRouterService } from '../../modules/ai/services/ai/model-router.service';
+import { modelRouterService } from '../../modules/ai/services/ai/model-router.service';
 import { ExecutionContext } from '../../modules/workflows/services/workflow-execution/types/workflow-execution.types';
 import { logger } from '../../shared/utils/logger.util';
 import { CircuitBreaker } from '../../shared/utils/retry.util';
@@ -89,7 +89,7 @@ export class AINodeExecutor {
       const chatMessages = messages as ChatMessage[];
 
       // Use the routed model for chat completion
-      const result = await langChainService.chatCompletion(chatMessages, {
+      const responseText = await langChainService.chatCompletion(chatMessages, {
         modelType: routingResult.provider as any,
         remoteModel: routingResult.provider === 'openrouter' ? config.remoteModel || 'claude' : undefined,
         temperature: routingResult.temperature,
@@ -98,18 +98,8 @@ export class AINodeExecutor {
         customModel: routingResult.model, // Pass the routed model directly
       });
 
-      if (!result.success) {
-        logger.error('AI chat node execution failed with routed model', result.error, {
-          nodeId: node.id,
-          executionId: context.execution._id.toString(),
-          routedProvider: routingResult.provider,
-          confidence: routingResult.confidence,
-        });
-        throw result.error;
-      }
-
       return {
-        response: result.result,
+        response: responseText,
         model: routingResult.provider,
         confidence: routingResult.confidence,
         temperature: routingResult.temperature,

@@ -5,8 +5,9 @@ import { z } from 'zod';
 import { mcpServer } from '../../../../agents/mcp/server';
 import { aiConfig } from '../../../../core/config/ai.config';
 import { agentStateService } from './agent-state.service';
+import { ModelRoutingOptions } from './model-decision.types';
 import { ModelFactory } from './model-factory';
-// import { modelRouterService, ModelRoutingOptions } from './model-router.service';
+import { modelRouterService } from './model-router.service';
 
 export interface AgentConfig {
   modelType?: 'vllm' | 'openrouter' | 'local';
@@ -21,6 +22,7 @@ export interface AgentConfig {
   userId?: string;
   nodeId?: string;
   trackReasoning?: boolean;
+  customModel?: any;
 
   // Enhanced agent patterns
   enableReflection?: boolean;     // Enable self-reflection capabilities
@@ -392,6 +394,10 @@ export class LangChainAgentService {
       enableScoring: true,
       forceProvider: config.modelType as any,
     };
+
+    if (config.customModel) {
+        return config.customModel;
+    }
 
     try {
       const routingResult = await modelRouterService.smartRoute(prompt, undefined, routingOptions);

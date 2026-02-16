@@ -66,10 +66,10 @@ export async function toolEcosystemRoutes(fastify: FastifyInstance) {
           implementation = request.body.implementation;
         }
 
-        const toolDef: ToolDefinition = {
+        const toolDef = toolEcosystemService.createTool({
           ...request.body,
           implementation,
-        };
+        });
 
         toolEcosystemService.registerTool(toolDef);
 

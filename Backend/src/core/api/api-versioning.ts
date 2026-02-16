@@ -22,7 +22,7 @@ const apiVersioning: FastifyPluginAsync<ApiVersioningConfig> = async (
   fastify.addConstraintStrategy({
     name: 'version',
     storage: function () {
-      const versions = new Map<string, string[]>();
+      const versions = new Map<string, any>();
       return {
         get: (version: string) => {
           return versions.get(version) || null;
@@ -38,7 +38,7 @@ const apiVersioning: FastifyPluginAsync<ApiVersioningConfig> = async (
 
       // If not in header, check query parameter
       if (!version) {
-        version = (request.query as any)?.[config.queryParamName];
+        version = (request as any).query?.[config.queryParamName];
       }
 
       // If still no version, use default
@@ -53,19 +53,7 @@ const apiVersioning: FastifyPluginAsync<ApiVersioningConfig> = async (
 
       return version;
     },
-    validate: (request, reply, options) => {
-      const version = (request as any).routeOptions.constraints?.version;
 
-      if (version && !config.supportedVersions.includes(version)) {
-        reply.code(400).send({
-          error: 'Unsupported API Version',
-          message: `API version '${version}' is not supported. Supported versions: ${config.supportedVersions.join(', ')}`,
-        });
-        return false;
-      }
-
-      return true;
-    },
   });
 
   // Middleware to add version information to requests

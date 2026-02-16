@@ -1,4 +1,4 @@
-// import { modelRouterService } from '../../modules/ai/services/ai/model-router.service';
+import { modelRouterService } from '../../modules/ai/services/ai/model-router.service';
 import { pineconeService, QueryResult } from '../vector/pinecone.service';
 
 export interface RetrievalOptions {
@@ -64,18 +64,20 @@ export class RetrievalService {
 
     if (retrievedDocs.length === 0) {
       // No relevant documents found, generate answer without context
-      const response = await modelRouterService.smartRoute(
-        [{ role: 'user', content: query }],
+      const routeResult = await modelRouterService.smartRoute(
+        query,
+        undefined,
         {
-          modelType: options.modelType,
-          remoteModel: options.remoteModel,
+          forceProvider: options.modelType as any,
         }
       );
+      
+      const response = await routeResult.model.invoke([{ role: 'user', content: query }]);
 
       return {
-        answer: response.response,
+        answer: response.content.toString(),
         sources: [],
-        model: response.model,
+        model: routeResult.provider,
       };
     }
 
@@ -94,29 +96,31 @@ Question: ${query}
 
 Answer:`;
 
-    const response = await modelRouterService.smartRoute(
-      [
+    const routeResult = await modelRouterService.smartRoute(
+      prompt,
+      'You are a helpful assistant that answers questions based on provided context. Cite sources when possible.',
+      {
+        forceProvider: options.modelType as any,
+      }
+    );
+
+    const response = await routeResult.model.invoke([
         {
           role: 'system',
           content:
             'You are a helpful assistant that answers questions based on provided context. Cite sources when possible.',
         },
         { role: 'user', content: prompt },
-      ],
-      {
-        modelType: options.modelType,
-        remoteModel: options.remoteModel,
-      }
-    );
+    ]);
 
     return {
-      answer: response.response,
+      answer: response.content.toString(),
       sources: retrievedDocs.map((doc) => ({
         text: doc.text || '',
         score: doc.score,
         metadata: doc.metadata,
       })),
-      model: response.model,
+      model: routeResult.provider,
     };
   }
 

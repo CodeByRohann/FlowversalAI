@@ -198,7 +198,7 @@ export class ToolSelectorService {
     // Check tool name relevance
     const toolNameWords = toolName.split(/[-_]/);
     taskAnalysis.keywords.forEach((keyword) => {
-      if (toolNameWords.some((word) => word.includes(keyword))) {
+      if (toolNameWords.some((word: string) => word.includes(keyword))) {
         score += 12;
         reasons.push(`Tool name matches: ${keyword}`);
         confidence += 0.12;
